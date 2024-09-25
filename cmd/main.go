@@ -2,8 +2,7 @@ package main
 
 import (
 	"github.com/vsm0/fightboi/api"
-	"github.com/vsm0/fightboi/gfx"
-	"github.com/vsm0/fightboi/lua"
+	"github.com/vsm0/fightboi/lua/gfxlib"
 
 	"image/color"
 	"time"
@@ -29,18 +28,9 @@ func run() {
 	}
 	defer win.Destroy()
 
-	canvas, err := gfx.NewCanvas(128, 128)
-	if err != nil {
-		panic(err)
-	}
-
-	a := &api.Api{
-		Runtime: *lua.New(),
-		Canvas: *canvas,
-	}
-
-	a.Register(a.Pix())
-	a.Run([]byte("pix(50, 50, 1)"), "test")
+	app, _ := api.New(128, 128)
+	app.Load(gfxlib.Loader(app))
+	app.Run([]byte("gfx.rect(8, 8, 50, 50, 1)"), "test")
 
 	tps := time.Duration(time.Second/60)
 	timer := time.NewTicker(tps)
@@ -52,6 +42,6 @@ func run() {
 		win.Update()
 		win.Clear(color.RGBA{0x1f, 0x1f, 0x1f, 0x1f})
 		
-		canvas.Draw(win)
+		app.Draw(win)
 	}
 }

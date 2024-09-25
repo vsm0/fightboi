@@ -4,44 +4,47 @@ import (
 	"os"
 
 	"github.com/arnodel/golua/lib"
+	"github.com/arnodel/golua/lib/coroutine"
+	"github.com/arnodel/golua/lib/mathlib"
 	"github.com/arnodel/golua/lib/packagelib"
+	"github.com/arnodel/golua/lib/stringlib"
+	"github.com/arnodel/golua/lib/tablelib"
+	"github.com/arnodel/golua/lib/utf8lib"
 	rt "github.com/arnodel/golua/runtime"
 )
 
 type Runtime struct {
-	rt.Runtime
-}
-
-type ApiFunc struct {
-	Fun func(t *rt.Thread, c *rt.GoCont) (rt.Cont, error)
-	Name string
-	Argc int
-	Variadic bool
+	Lua *rt.Runtime
 }
 
 func New() *Runtime {
-	return &Runtime{
-		Runtime: *rt.New(os.Stdout),
+	r := &Runtime{
+		Lua: rt.New(os.Stdout),
 	}
+
+	r.Load(
+		packagelib.LibLoader,
+		coroutine.LibLoader,
+		mathlib.LibLoader,
+		stringlib.LibLoader,
+		tablelib.LibLoader,
+		utf8lib.LibLoader,
+	)
+
+	return r
 }
 
 func (r *Runtime) Load(loaders ...packagelib.Loader) {
-	lib.LoadLibs(&r.Runtime, loaders...)
-}
-
-func (r *Runtime) Register(globals ...ApiFunc) {
-	for _, g := range globals {
-		r.SetEnvGoFunc(r.GlobalEnv(), g.Name, g.Fun, g.Argc, g.Variadic)
-	}
+	lib.LoadLibs(r.Lua, loaders...)
 }
 
 func (r *Runtime) Run(code []byte, debug string) error {
-	chunk, err := r.CompileAndLoadLuaChunk(debug, code, rt.TableValue(r.GlobalEnv()))
+	chunk, err := r.Lua.CompileAndLoadLuaChunk(debug, code, rt.TableValue(r.Lua.GlobalEnv()))
 	if err != nil {
 		return err
 	}
 
-	_, err = rt.Call1(r.MainThread(), rt.FunctionValue(chunk))
+	_, err = rt.Call1(r.Lua.MainThread(), rt.FunctionValue(chunk))
 
 	return err
 }

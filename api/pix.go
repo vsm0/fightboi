@@ -1,23 +1,13 @@
 package api
 
 import (
-	"github.com/vsm0/fightboi/lua"
-
 	"errors"
 	"image/color"
 	
 	rt "github.com/arnodel/golua/runtime"
 )
 
-func (a *Api) Pix() lua.ApiFunc {
-	return lua.ApiFunc{
-		Name: "pix",
-		Argc: 3,
-		Fun: a.pix,
-	}
-}
-
-func (a *Api) pix(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+func (a *App) Pix(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	var x, y, col int64
 
 	err := c.CheckNArgs(3)
@@ -39,7 +29,7 @@ func (a *Api) pix(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	}
 
 	// for now, just set white
-	err = a.Set(int(x), int(y), color.RGBA{0xff, 0xff, 0xff, 0xff})
+	a.Set(int(x), int(y), color.RGBA{0xff, 0xff, 0xff, 0xff})
 
-	return c.PushingNext(nil), err
+	return c.PushingNext(nil), nil
 }

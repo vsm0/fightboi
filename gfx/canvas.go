@@ -41,6 +41,9 @@ func (c *Canvas) Set(x, y int, col color.RGBA) error {
 		return errors.New("invalid x/y")
 	}
 
+	// flip opengl y coord to get top-left origin coords
+	y = h - 1 - y
+
 	c.Data[x + y * w] = col
 	return nil
 }
